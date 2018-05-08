@@ -73,6 +73,9 @@ public class ClientRequest {
     /// Should HTTP/2 protocol be used
     private var useHTTP2 = false
 
+    /// Set maximum time the request is allowed to take
+    private var timeout: Int?
+
     /// Data that represents the "HTTP/2 " header status line prefix
     fileprivate static let Http2StatusLineVersion = "HTTP/2 ".data(using: .utf8)!
 
@@ -375,6 +378,13 @@ public class ClientRequest {
         self.callback(self.response)
     }
 
+    /// Set maximum time the request is allowed to take
+    ///
+    /// Parameter using: number of seconds. (nil for default)
+    public func setTimeout(time: Int?) {
+        self.timeout = time;
+    }
+
     /// Prepare the handle 
     ///
     /// Parameter using: The URL to use when preparing the handle
@@ -387,6 +397,9 @@ public class ClientRequest {
         if disableSSLVerification {
             curlHelperSetOptInt(handle!, CURLOPT_SSL_VERIFYHOST, 0)
             curlHelperSetOptInt(handle!, CURLOPT_SSL_VERIFYPEER, 0)
+        }
+        if let time = self.timeout {
+            curlHelperSetOptInt(handle!, CURLOPT_TIMEOUT, time)
         }
         setMethodAndContentLength()
         setupHeaders()
